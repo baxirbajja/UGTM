@@ -25,10 +25,13 @@ class PostForm
                 Textarea::make('content')
                     ->columnSpanFull(),
                 FileUpload::make('image')
-                    ->image(),
+                    ->image()
+                    ->multiple()
+                    ->reorderable(),
                 FileUpload::make('attachment')
                     ->directory('attachments')
                     ->acceptedFileTypes(['application/pdf'])
+                    ->multiple()
                     ->downloadable()
                     ->openable(),
                 Toggle::make('is_published')

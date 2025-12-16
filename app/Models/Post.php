@@ -27,6 +27,36 @@ class Post extends Model
         'is_featured' => 'boolean',
     ];
 
+    protected function image(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value) {
+                if (empty($value)) return null;
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+                return [$value];
+            },
+            set: fn ($value) => is_array($value) ? json_encode($value) : $value,
+        );
+    }
+
+    protected function attachment(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value) {
+                if (empty($value)) return null;
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+                return [$value];
+            },
+            set: fn ($value) => is_array($value) ? json_encode($value) : $value,
+        );
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

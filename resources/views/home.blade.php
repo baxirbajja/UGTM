@@ -1,15 +1,15 @@
 <x-layout>
     <!-- Hero Section -->
     <!-- Hero Section -->
-    <section class="relative w-full h-[600px] bg-navy-900 overflow-hidden group" x-data="{ 
+    <section class="relative w-full h-[600px] bg-navy-900 overflow-hidden group" x-data='{ 
         activeSlide: 0, 
-        slides: {{ $featuredPosts->map(fn($p) => [
+        slides: {!! $featuredPosts->map(fn($p) => [
             'id' => $p->id,
             'title' => $p->title,
             'excerpt' => Str::limit($p->content, 150),
-            'image' => str_starts_with($p->image, 'http') ? $p->image : Storage::url($p->image),
+            'image' => is_array($p->image) ? (str_starts_with($p->image[0], 'http') ? $p->image[0] : Storage::url($p->image[0])) : (str_starts_with($p->image, 'http') ? $p->image : Storage::url($p->image)),
             'url' => route('posts.show', $p->slug)
-        ])->toJson() }},
+        ])->toJson() !!},
         timer: null,
         startTimer() {
             this.timer = setInterval(() => {
@@ -25,7 +25,7 @@
         prevSlide() {
             this.activeSlide = this.activeSlide === 0 ? this.slides.length - 1 : this.activeSlide - 1;
         }
-    }" x-init="startTimer()" @mouseenter="stopTimer()" @mouseleave="startTimer()">
+    }' x-init="startTimer()" @mouseenter="stopTimer()" @mouseleave="startTimer()">
         
         <!-- Slides -->
         <template x-for="(slide, index) in slides" :key="slide.id">
@@ -86,14 +86,17 @@
             <div class="lg:w-3/4">
                 <div class="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
                     <h2 class="text-3xl font-bold text-navy-800 border-b-4 border-ugtm-purple inline-block pb-4 -mb-5">آخر الأخبار</h2>
-                    <a href="#" class="text-ugtm-purple hover:underline">عرض الكل &larr;</a>
+                    <a href="{{ route('categories.show', 'news') }}" class="text-ugtm-purple hover:underline">عرض الكل &larr;</a>
                 </div>
 
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($latestPosts as $post)
                     <article class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100">
                         <div class="h-48 bg-gray-200 relative">
-                            <img src="{{ str_starts_with($post->image, 'http') ? $post->image : Storage::url($post->image) }}" class="w-full h-full object-cover">
+                            @php
+                                $image = is_array($post->image) ? $post->image[0] : $post->image;
+                            @endphp
+                            <img src="{{ str_starts_with($image, 'http') ? $image : Storage::url($image) }}" class="w-full h-full object-cover">
                             <a href="{{ route('categories.show', $post->category->slug) }}" class="absolute top-4 right-4 bg-ugtm-purple text-white text-xs px-2 py-1 rounded hover:bg-navy-800 transition">
                                 {{ $post->category->name }}
                             </a>

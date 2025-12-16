@@ -21,17 +21,132 @@
                             @if($post->is_urgent)
                             <span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-bold border border-red-100 animate-pulse">عاجل</span>
                             @endif
+                            
+                            <!-- Share Button -->
+                            <button x-data="{
+                                copied: false,
+                                async share() {
+                                    const url = window.location.href;
+                                    const title = '{{ $post->title }}';
+
+                                    if (navigator.share) {
+                                        try {
+                                            await navigator.share({
+                                                title: title,
+                                                url: url
+                                            });
+                                        } catch (err) {
+                                            console.error('Share failed:', err);
+                                        }
+                                    } else {
+                                        try {
+                                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                                await navigator.clipboard.writeText(url);
+                                            } else {
+                                                // Legacy fallback
+                                                const textArea = document.createElement('textarea');
+                                                textArea.value = url;
+                                                textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+                                                document.body.appendChild(textArea);
+                                                textArea.focus();
+                                                textArea.select();
+                                                try {
+                                                    document.execCommand('copy');
+                                                } catch (err) {
+                                                    console.error('Fallback copy failed', err);
+                                                    alert('Please copy this URL manually: ' + url);
+                                                }
+                                                document.body.removeChild(textArea);
+                                            }
+                                            this.copied = true;
+                                            setTimeout(() => this.copied = false, 2000);
+                                        } catch (err) {
+                                            console.error('Copy failed:', err);
+                                            alert('Please copy this URL manually: ' + url);
+                                        }
+                                    }
+                                }
+                            }" 
+                            @click="share()"
+                            class="flex items-center gap-2 px-3 py-1 rounded-full border transition text-xs font-bold cursor-pointer"
+                            :class="copied ? 'bg-green-50 text-green-600 border-green-200' : 'bg-white text-gray-500 border-gray-100 hover:bg-ugtm-purple hover:text-white hover:border-ugtm-purple'">
+                                <template x-if="!copied">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                </template>
+                                <template x-if="copied">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </template>
+                                <span x-text="copied ? 'تم النسخ!' : 'مشاركة'"></span>
+                            </button>
                         </div>
                         <h1 class="text-3xl md:text-5xl font-extrabold text-navy-900 mb-6 leading-tight">
                             {{ $post->title }}
                         </h1>
                     </div>
 
-                    <!-- Featured Image -->
+                    <!-- Featured Image / Slider -->
                     @if($post->image)
-                    <div class="mb-10 rounded-2xl overflow-hidden shadow-lg border border-gray-100">
-                        <img src="{{ str_starts_with($post->image, 'http') ? $post->image : Storage::url($post->image) }}" alt="{{ $post->title }}" class="w-full h-auto object-cover">
-                    </div>
+                        @php
+                            $images = is_array($post->image) ? $post->image : [$post->image];
+                        @endphp
+                        
+                        @if(count($images) > 1)
+                            <div class="relative w-full mb-10 rounded-2xl overflow-hidden shadow-lg border border-gray-100 group" 
+                                 style="height: 500px;"
+                                 x-data='{ 
+                                    activeSlide: 0, 
+                                    slides: @json($images),
+                                    timer: null,
+                                    startTimer() {
+                                        this.timer = setInterval(() => {
+                                            this.activeSlide = this.activeSlide === this.slides.length - 1 ? 0 : this.activeSlide + 1;
+                                        }, 2000);
+                                    },
+                                    stopTimer() {
+                                        clearInterval(this.timer);
+                                    }
+                                 }'
+                                 x-init="startTimer()"
+                                 @mouseenter="stopTimer()"
+                                 @mouseleave="startTimer()">
+                                
+                                <!-- Slides -->
+                                <template x-for="(slide, index) in slides" :key="index">
+                                    <div x-show="activeSlide === index" 
+                                         x-transition:enter="transition ease-out duration-300"
+                                         x-transition:enter-start="opacity-0 transform scale-95"
+                                         x-transition:enter-end="opacity-100 transform scale-100"
+                                         x-transition:leave="transition ease-in duration-300"
+                                         x-transition:leave-start="opacity-100 transform scale-100"
+                                         x-transition:leave-end="opacity-0 transform scale-95"
+                                         class="absolute inset-0 w-full h-full">
+                                        <img :src="slide.startsWith('http') ? slide : '/storage/' + slide" :alt="'Slide ' + (index + 1)" class="w-full h-full object-cover">
+                                    </div>
+                                </template>
+
+                                <!-- Navigation Arrows -->
+                                <button @click="activeSlide = activeSlide === 0 ? slides.length - 1 : activeSlide - 1" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition backdrop-blur-sm">
+                                    <svg class="w-6 h-6 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <button @click="activeSlide = activeSlide === slides.length - 1 ? 0 : activeSlide + 1" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition backdrop-blur-sm">
+                                    <svg class="w-6 h-6 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+
+                                <!-- Dots -->
+                                <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                                    <template x-for="(slide, index) in slides" :key="index">
+                                        <button @click="activeSlide = index" 
+                                                class="w-2.5 h-2.5 rounded-full transition-all"
+                                                :class="activeSlide === index ? 'bg-white w-6' : 'bg-white/50 hover:bg-white'">
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        @else
+                            <div class="mb-10 rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+                                <img src="{{ str_starts_with($images[0], 'http') ? $images[0] : Storage::url($images[0]) }}" alt="{{ $post->title }}" class="w-full h-auto object-cover">
+                            </div>
+                        @endif
                     @endif
 
                     <!-- Article Body -->
@@ -42,23 +157,30 @@
 
                         <!-- Attachments -->
                         @if($post->attachment)
-                        <div class="mt-12">
-                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 hover:border-ugtm-purple/30 hover:shadow-md transition duration-300 group">
-                                <div class="flex items-center gap-4 w-full sm:w-auto">
-                                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-sm text-red-500 border border-gray-100 group-hover:scale-105 transition">
-                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-navy-900 text-lg">تحميل المرفق الرسمي</p>
-                                        <p class="text-xs text-gray-500">ملف PDF • اضغط للتحميل</p>
+                            @php
+                                $attachments = is_array($post->attachment) ? $post->attachment : [$post->attachment];
+                            @endphp
+                            <div class="mt-12">
+                                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                                    <h3 class="font-bold text-navy-900 mb-4 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-ugtm-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                        مرفقات التحميل
+                                    </h3>
+                                    <div class="space-y-3">
+                                        @foreach($attachments as $attachment)
+                                            <a href="{{ Storage::url($attachment) }}" target="_blank" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100 group">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition">
+                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                                    </div>
+                                                    <span class="font-medium text-gray-700 group-hover:text-ugtm-purple transition" dir="ltr">{{ basename($attachment) }}</span>
+                                                </div>
+                                                <svg class="w-5 h-5 text-gray-400 group-hover:text-ugtm-purple transition rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            </a>
+                                        @endforeach
                                     </div>
                                 </div>
-                                <a href="{{ Storage::url($post->attachment) }}" class="w-full sm:w-auto text-center bg-navy-800 text-white px-6 py-3 rounded-lg hover:bg-ugtm-purple transition shadow-lg hover:shadow-xl font-bold flex items-center justify-center gap-2" download>
-                                    <span>تحميل الملف</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                </a>
                             </div>
-                        </div>
                         @endif
                     </div>
                 </div>

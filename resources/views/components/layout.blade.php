@@ -38,13 +38,14 @@
             
             <div class="flex items-center gap-3">
                 <a href="/" class="flex items-center gap-3 group">
-                    <img src="/images/logo.png" alt="UGTM Logo"    class="h-16 w-auto transition transform group-hover:scale-120">
+                    <img src="/images/logo-FAE.png" alt="FAE Logo" style="width: 80px; height: auto;" class="h-16 w-auto transition transform group-hover:scale-120">
                     <div class="flex flex-col">
-                        <span class="text-2xl font-black text-navy-900 tracking-tight leading-none group-hover:text-ugtm-purple transition">UGTM</span>
+                        <span class="text-2xl font-black text-navy-900 tracking-tight leading-none group-hover:text-ugtm-purple transition">FAE</span>
                         <span class="text-xs font-bold text-gray-500 tracking-widest uppercase group-hover:text-navy-900 transition">Education</span>
                     </div>
                 </a>
             </div>
+
 
             <!-- Desktop Nav -->
             <nav class="hidden md:flex items-center space-x-8 space-x-reverse">
@@ -60,7 +61,11 @@
                 </a>
                 @endforeach
 
-                <a href="#" class="px-6 py-2.5 mr-2 bg-navy-900 text-white rounded-full hover:bg-ugtm-purple transition shadow-lg hover:shadow-ugtm-purple/30 font-bold text-sm transform hover:-translate-y-0.5">
+                <a href="{{ route('about') }}" class="text-navy-900 font-bold hover:text-ugtm-purple transition relative py-2 group">
+                    من نحن
+                    <span class="absolute bottom-0 right-0 w-0 h-0.5 bg-ugtm-purple transition-all duration-300 group-hover:w-full"></span>
+                </a>
+                <a href="{{ route('contact') }}" class="px-6 py-2.5 mr-2 bg-navy-900 text-white rounded-full hover:bg-ugtm-purple transition shadow-lg hover:shadow-ugtm-purple/30 font-bold text-sm transform hover:-translate-y-0.5">
                     اتصل بنا
                 </a>
             </nav>
@@ -81,7 +86,8 @@
                 @foreach($categories as $category)
                 <a href="{{ route('categories.show', $category->slug) }}" class="text-gray-600 font-medium hover:text-ugtm-purple transition block px-4 py-2 rounded-lg hover:bg-gray-50 text-center">{{ $category->name }}</a>
                 @endforeach
-                <a href="#"  class="text-center px-6 py-3 mr-5 bg-navy-900 text-white rounded-lg hover:bg-ugtm-purple transition font-bold">اتصل بنا</a>
+                <a href="{{ route('about') }}" class="text-gray-600 font-medium hover:text-ugtm-purple transition block px-4 py-2 rounded-lg hover:bg-gray-50 text-center">من نحن</a>
+                <a href="{{ route('contact') }}"  class="text-center px-6 py-3 mr-5 bg-navy-900 text-white rounded-lg hover:bg-ugtm-purple transition font-bold">اتصل بنا</a>
             </div>
         </div>
     </header>
@@ -97,13 +103,13 @@
             <div>
                 <h3 class="text-xl font-bold mb-4">الجامعة الحرة للتعليم</h3>
                 <p class="text-gray-400">نضال مستمر من أجل كرامة الأسرة التعليمية.</p>
-                <img src="/images/logo3.png" alt="UGTM Footer Logo" style="width: 300px; height: auto;" class="h-24 mx-auto md:mx-0 mt-4 opacity-90">
+                <img src="/images/logo-FAE.png" alt="FAE Footer Logo" style="width: 150px; height: auto;" class="h-24 mx-auto md:mx-0 mt-4 opacity-90">
             </div>
             <div>
                 <h3 class="text-xl font-bold mb-4">روابط سريعة</h3>
                 <ul class="space-y-2 text-gray-400">
-                    <li><a href="#" class="hover:text-white">الرئيسية</a></li>
-                    <li><a href="#" class="hover:text-white">اتصل بنا</a></li>
+                    <li><a href="/" class="hover:text-white">الرئيسية</a></li>
+                    <li><a href="{{ route('contact') }}" class="hover:text-white">اتصل بنا</a></li>
                 </ul>
 
             </div>

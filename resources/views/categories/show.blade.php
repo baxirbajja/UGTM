@@ -17,7 +17,10 @@
                         <article class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100">
                             <div class="h-48 bg-gray-200 relative">
                                 @if($post->image)
-                                <img src="{{ str_starts_with($post->image, 'http') ? $post->image : Storage::url($post->image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover">
+                                @php
+                                    $image = is_array($post->image) ? $post->image[0] : $post->image;
+                                @endphp
+                                <img src="{{ str_starts_with($image, 'http') ? $image : Storage::url($image) }}" alt="{{ $post->title }}" class="w-full h-full object-cover">
                                 @else
                                 <div class="w-full h-full flex items-center justify-center text-gray-400">
                                     <span class="text-4xl">📷</span>

@@ -17,22 +17,25 @@ class PostsTable
         return $table
             ->columns([
                 TextColumn::make('category.name')
-                    ->searchable(),
+                    ->label('Category')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('title')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->searchable(),
-                ImageColumn::make('image'),
-                TextColumn::make('attachment')
-                    ->searchable(),
+                    ->label('Title')
+                    ->searchable()
+                    ->sortable(),
                 IconColumn::make('is_published')
-                    ->boolean(),
+                    ->label('Published')
+                    ->boolean()
+                    ->sortable(),
                 IconColumn::make('is_urgent')
-                    ->boolean(),
+                    ->label('Urgent')
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Date of Publishing')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
